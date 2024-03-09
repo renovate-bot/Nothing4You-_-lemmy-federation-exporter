@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM python:3.12-slim-bookworm AS builder
+FROM python:3.12-slim-bookworm AS builder
 
 RUN pip install -U pip setuptools wheel
 RUN pip install pdm
@@ -14,7 +14,7 @@ COPY src/ /project/src
 RUN pdm sync --prod --no-editable
 
 
-FROM --platform=$BUILDPLATFORM python:3.12-slim-bookworm
+FROM python:3.12-slim-bookworm
 
 ARG UID=34130
 
