@@ -108,6 +108,11 @@ async def metrics(request: aiohttp.web.Request):
         instance_last_seen_metric.add_metric(
             labels, (last_seen - unix_epoch).total_seconds(), prom_ts
         )
+        instance_last_seen_metric_since_seconds.add_metric(
+            labels,
+            (now - last_seen).total_seconds(),
+            prom_ts,
+        )
         failure_count_metric.add_metric(
             labels, i["federation_state"]["fail_count"], prom_ts
         )
