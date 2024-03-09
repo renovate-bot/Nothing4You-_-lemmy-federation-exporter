@@ -1,0 +1,22 @@
+[project]
+name = "lemmy-federation-exporter"
+version = "0.1.0"
+description = "Prometheus exporter for Lemmy federation status"
+authors = [
+    {name = "Richard Schwab", email = "pythonlemmyfeder-33dfyvuvas@richardschwab.de"},
+]
+dependencies = [
+    "aiohttp[speedups]>=3.9.3",
+    "prometheus-client>=0.20.0",
+]
+requires-python = ">=3.12"
+readme = "README.md"
+license = {text = "AGPL-3.0-only"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+
+[tool.pdm]
+distribution = true
