@@ -84,12 +84,19 @@ async def metrics(request: aiohttp.web.Request):
     unix_now = now - unix_epoch
     prom_ts = Timestamp(unix_now.total_seconds(), unix_now.microseconds * 1000)
 
+    # for instances using an allowlist, the same dicts are present in allowlist
+    # if allowlist is empty, any linked instance is considered
+    if len(j["federated_instances"]["allowed"]) > 0:
+        federation_type = "allowed"
+    else:
+        federation_type = "linked"
+
     max_id = max(
         i.get("federation_state", {}).get("last_successful_id", 0)
-        for i in j["federated_instances"]["linked"]
+        for i in j["federated_instances"][federation_type]
     )
 
-    for i in j["federated_instances"]["linked"]:
+    for i in j["federated_instances"][federation_type]:
         if "updated" not in i:
             logger.debug("[%s] missing updated for %s", instance, i["domain"])
             continue
