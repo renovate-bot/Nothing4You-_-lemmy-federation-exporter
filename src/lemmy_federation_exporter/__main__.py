@@ -15,7 +15,7 @@ USER_AGENT = os.environ.get("HTTP_USER_AGENT", USER_AGENT)
 logger = logging.getLogger(__name__)
 
 
-async def metrics(request: aiohttp.web.Request):
+async def metrics(request: aiohttp.web.Request) -> aiohttp.web.Response:
     instance = request.query.getone("instance")
 
     c = CollectorHelper()
@@ -155,14 +155,14 @@ async def metrics(request: aiohttp.web.Request):
     return aiohttp.web.Response(text=metrics_result)
 
 
-def main():
+def main() -> None:
     logging.basicConfig(
         level=os.environ.get("LOGLEVEL", "INFO").upper(),
         format="%(asctime)s - %(levelname)8s - %(name)s:%(funcName)s - %(message)s",
     )
 
-    logging.Formatter.formatTime = (
-        lambda self, record, datefmt: datetime.fromtimestamp(record.created, UTC)
+    logging.Formatter.formatTime = (  # type: ignore[method-assign]
+        lambda self, record, datefmt: datetime.fromtimestamp(record.created, UTC)  # type: ignore
         .astimezone()
         .isoformat()
     )
