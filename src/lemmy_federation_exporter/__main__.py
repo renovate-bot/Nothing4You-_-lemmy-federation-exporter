@@ -3,7 +3,7 @@ import logging
 import os
 
 import aiohttp.web
-from prometheus_client.core import CounterMetricFamily, GaugeMetricFamily, Timestamp
+from prometheus_client.core import GaugeMetricFamily, Timestamp
 
 
 from .prom_util import CollectorHelper
@@ -51,7 +51,7 @@ async def metrics(request: aiohttp.web.Request) -> aiohttp.web.Response:
         labels=label_keys,
     )
     c.add_metric(last_successful_id_metric)
-    last_successful_id_local_metric = CounterMetricFamily(
+    last_successful_id_local_metric = GaugeMetricFamily(
         "lemmy_federation_state_last_successful_id_local",
         "Highest last successfully sent activity id across all linked instances",
     )
@@ -156,7 +156,7 @@ async def metrics(request: aiohttp.web.Request) -> aiohttp.web.Response:
                 prom_ts,
             )
 
-    last_successful_id_local_metric.add_metric((), max_id, timestamp=prom_ts)
+    last_successful_id_local_metric.add_metric((), max_id, prom_ts)
 
     metrics_result = c.generate().decode()
     return aiohttp.web.Response(text=metrics_result)
