@@ -12,6 +12,12 @@ repos:
     rev: 2.13.3
     hooks:
       - id: pdm-lock-check
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.15.2
+    hooks:
+      - id: pyupgrade
+        args:
+          - --py312-plus
   - repo: https://github.com/psf/black
     rev: 24.3.0
     hooks:

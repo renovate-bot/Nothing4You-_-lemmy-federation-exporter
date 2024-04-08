@@ -1,4 +1,4 @@
-from typing import Iterable
+from collections.abc import Iterable
 
 from prometheus_client.core import Metric, CollectorRegistry
 from prometheus_client.exposition import generate_latest
@@ -21,8 +21,7 @@ class CollectorHelper(Collector):
         self.metrics[metric.name] = metric
 
     def collect(self) -> Iterable[Metric]:
-        for metric in self.metrics.values():
-            yield metric
+        yield from self.metrics.values()
 
     def generate(self) -> bytes:
         return generate_latest(self.registry)
