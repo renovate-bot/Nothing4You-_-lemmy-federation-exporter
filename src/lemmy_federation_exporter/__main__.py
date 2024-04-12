@@ -1,16 +1,28 @@
-from datetime import datetime, timedelta, UTC
+import asyncio
 import logging
 import os
+from datetime import UTC, datetime, timedelta
+from typing import NotRequired, TypedDict
 
 import aiohttp.web
 from prometheus_client.core import GaugeMetricFamily, Timestamp
 
-
+from .fediseer_domain_cache import FediseerDomainCache
 from .prom_util import CollectorHelper
 
+USER_AGENT = os.environ.get(
+    "HTTP_USER_AGENT",
+    "Lemmy-Federation-Exporter (+https://github.com/Nothing4You/lemmy-federation-exporter)",
+)
 
-USER_AGENT = "Lemmy-Federation-Exporter (+https://github.com/Nothing4You/lemmy-federation-exporter)"
-USER_AGENT = os.environ.get("HTTP_USER_AGENT", USER_AGENT)
+FILTER_FEDISEER_ENABLED = os.environ.get("FILTER_FEDISEER_ENABLED", "").lower() in (
+    "1",
+    "true",
+    "yes",
+)
+
+# Setup sharable aiohttp data
+fediseer_domain_cache = aiohttp.web.AppKey("fediseer_domain_cache", FediseerDomainCache)
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +113,17 @@ async def metrics(request: aiohttp.web.Request) -> aiohttp.web.Response:
         for i in j["federated_instances"][federation_type]
     )
 
+    # Access the shared fediseer domain cache
+    if FILTER_FEDISEER_ENABLED:
+        fediseer_domains = await request.app[fediseer_domain_cache].get_domains()
+    else:
+        fediseer_domains = set()
+
     for i in j["federated_instances"][federation_type]:
+        # If the domain is not in the list of verified domains, skip the domain
+        if FILTER_FEDISEER_ENABLED and i["domain"].lower() not in fediseer_domains:
+            continue
+
         if "updated" not in i:
             logger.debug("[%s] missing updated for %s", instance, i["domain"])
             continue
@@ -162,7 +184,59 @@ async def metrics(request: aiohttp.web.Request) -> aiohttp.web.Response:
     return aiohttp.web.Response(text=metrics_result)
 
 
-def main() -> None:
+async def init_filter_fediseer(app: aiohttp.web.Application) -> None:
+    class KwArgs(TypedDict):
+        min_endorsements: NotRequired[int]
+        min_guarantors: NotRequired[int]
+        software_csv: NotRequired[str]
+        return_limit: NotRequired[int]
+        refresh_interval: NotRequired[int]
+
+    env_types = {
+        "min_endorsements": int,
+        "min_guarantors": int,
+        "software_csv": str,
+        "return_limit": int,
+        "refresh_interval": int,
+    }
+
+    kwargs: KwArgs = {}
+
+    for k, t in env_types.items():
+        env_key = f"FILTER_FEDISEER_{k}".upper()
+        env_val = os.environ.get(env_key)
+        if env_val is not None:
+            if t is int:
+                try:
+                    # TODO: Figure out if this can be dealt with properly without
+                    # TODO: skipping type checking
+                    kwargs[k] = int(env_val)  # type: ignore[literal-required]
+                except ValueError:
+                    logger.warning(
+                        "Unable to parse %s=%r as number, ignoring...",
+                        env_key,
+                        env_val,
+                    )
+            else:
+                # TODO: Figure out if this can be dealt with properly without
+                # TODO: skipping type checking
+                kwargs[k] = env_val  # type: ignore[literal-required]
+
+    app[fediseer_domain_cache] = FediseerDomainCache(
+        user_agent=USER_AGENT,
+        **kwargs,
+    )
+
+    # This ensures the task doesn't get discarded during execution but discards
+    # the reference once completed.
+    # Based on https://docs.python.org/3/library/asyncio-task.html#asyncio.create_task
+    background_tasks = set()
+    task = asyncio.create_task(app[fediseer_domain_cache].get_domains())
+    background_tasks.add(task)
+    task.add_done_callback(background_tasks.discard)
+
+
+async def init() -> aiohttp.web.Application:
     logging.basicConfig(
         level=os.environ.get("LOGLEVEL", "INFO").upper(),
         format="%(asctime)s - %(levelname)8s - %(name)s:%(funcName)s - %(message)s",
@@ -175,13 +249,18 @@ def main() -> None:
     )
 
     app = aiohttp.web.Application()
+
+    if FILTER_FEDISEER_ENABLED:
+        await init_filter_fediseer(app)
+
     app.add_routes(
         [
             aiohttp.web.get("/metrics", metrics),
         ]
     )
-    aiohttp.web.run_app(app)
+
+    return app
 
 
 if __name__ == "__main__":
-    main()
+    aiohttp.web.run_app(init())
