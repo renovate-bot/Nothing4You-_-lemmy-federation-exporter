@@ -27,7 +27,9 @@ fediseer_domain_cache = aiohttp.web.AppKey("fediseer_domain_cache", FediseerDoma
 logger = logging.getLogger(__name__)
 
 
-async def metrics(request: aiohttp.web.Request) -> aiohttp.web.Response:
+# TODO: This should probably be split a bit to improve readability.
+# TOOD: Afterwards the noqa marker for PLR0915 can be removed.
+async def metrics(request: aiohttp.web.Request) -> aiohttp.web.Response:  # noqa: PLR0915
     instance = request.query.getone("instance")
 
     c = CollectorHelper()
@@ -140,7 +142,9 @@ async def metrics(request: aiohttp.web.Request) -> aiohttp.web.Response:
             i.get("software", ""),
         )
         instance_last_seen_metric.add_metric(
-            labels, (last_seen - unix_epoch).total_seconds(), prom_ts
+            labels,
+            (last_seen - unix_epoch).total_seconds(),
+            prom_ts,
         )
         instance_last_seen_metric_since_seconds.add_metric(
             labels,
@@ -148,20 +152,26 @@ async def metrics(request: aiohttp.web.Request) -> aiohttp.web.Response:
             prom_ts,
         )
         failure_count_metric.add_metric(
-            labels, i["federation_state"]["fail_count"], prom_ts
+            labels,
+            i["federation_state"]["fail_count"],
+            prom_ts,
         )
         last_successful_id_metric.add_metric(
-            labels, i["federation_state"]["last_successful_id"], prom_ts
+            labels,
+            i["federation_state"]["last_successful_id"],
+            prom_ts,
         )
         activities_behind_metric.add_metric(
-            labels, max_id - i["federation_state"]["last_successful_id"], prom_ts
+            labels,
+            max_id - i["federation_state"]["last_successful_id"],
+            prom_ts,
         )
         if "last_successful_published_time" in i["federation_state"]:
             last_successful_published_time_metric.add_metric(
                 labels,
                 (
                     datetime.fromisoformat(
-                        i["federation_state"]["last_successful_published_time"]
+                        i["federation_state"]["last_successful_published_time"],
                     )
                     - unix_epoch
                 ).total_seconds(),
@@ -172,7 +182,7 @@ async def metrics(request: aiohttp.web.Request) -> aiohttp.web.Response:
                 (
                     now
                     - datetime.fromisoformat(
-                        i["federation_state"]["last_successful_published_time"]
+                        i["federation_state"]["last_successful_published_time"],
                     )
                 ).total_seconds(),
                 prom_ts,
@@ -243,7 +253,7 @@ async def init() -> aiohttp.web.Application:
     )
 
     logging.Formatter.formatTime = (  # type: ignore[method-assign]
-        lambda self, record, datefmt: datetime.fromtimestamp(record.created, UTC)  # type: ignore
+        lambda self, record, datefmt: datetime.fromtimestamp(record.created, UTC)  # type: ignore[assignment,misc] # noqa: ARG005
         .astimezone()
         .isoformat()
     )
@@ -256,7 +266,7 @@ async def init() -> aiohttp.web.Application:
     app.add_routes(
         [
             aiohttp.web.get("/metrics", metrics),
-        ]
+        ],
     )
 
     return app

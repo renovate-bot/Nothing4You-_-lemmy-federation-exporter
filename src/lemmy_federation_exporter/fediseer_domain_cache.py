@@ -62,7 +62,7 @@ class FediseerDomainCache:
             response: dict[str, list[str]] = await r.json()
             self._domains = {d.lower() for d in response["domains"]}
             logger.info("Refreshed Fediseer domain list")
-            self._last_updated = datetime.now()
+            self._last_updated = datetime.now()  # noqa: DTZ005
 
         self._update_task = None
 
@@ -71,7 +71,7 @@ class FediseerDomainCache:
         # and not already updating
         if (self._update_task is None or self._update_task.done()) and (
             self._last_updated is None
-            or (datetime.now() - self._last_updated).seconds > self._refresh_interval
+            or (datetime.now() - self._last_updated).seconds > self._refresh_interval  # noqa: DTZ005
         ):
             self._update_task = asyncio.create_task(self._update_verified_domains())
 

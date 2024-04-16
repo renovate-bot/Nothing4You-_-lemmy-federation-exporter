@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 
-from prometheus_client.core import Metric, CollectorRegistry
+from prometheus_client.core import CollectorRegistry, Metric
 from prometheus_client.exposition import generate_latest
 from prometheus_client.registry import Collector
 

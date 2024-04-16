@@ -18,20 +18,24 @@ repos:
       - id: pyupgrade
         args:
           - --py312-plus
-  - repo: https://github.com/psf/black
-    rev: 24.4.0
-    hooks:
-      - id: black
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v4.0.0-alpha.8
+  - repo: local
     hooks:
       - id: prettier
+        name: Prettier
+        language: node
+        entry: prettier
+        args: [--write, --ignore-unknown]
+        types: [file]
+        additional_dependencies:
+          - prettier@3.2.5
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.3.7
     hooks:
       # Run the linter.
       - id: ruff
-        args: [--fix]
+        args:
+          - --fix
+          - --show-fixes
       # Run the formatter.
       - id: ruff-format
   - repo: https://github.com/pre-commit/mirrors-mypy
