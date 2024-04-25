@@ -28,10 +28,16 @@ logger = logging.getLogger(__name__)
 
 
 # TODO: This should probably be split a bit to improve readability.
-# TOOD: Afterwards the noqa marker for PLR0915 can be removed.
-async def metrics(request: aiohttp.web.Request) -> aiohttp.web.Response:  # noqa: PLR0915
+# TOOD: Afterwards the noqa marker for C901 and PLR0915 can be removed.
+async def metrics(request: aiohttp.web.Request) -> aiohttp.web.Response:  # noqa: C901, PLR0915
+    # Get request query paramaters
     instance = request.query.getone("instance")
-
+    remote_instances_filter_str: str | None = request.query.get("remote_instances")
+    remote_instances_filter = (
+        remote_instances_filter_str.lower().split(",")
+        if remote_instances_filter_str is not None
+        else None
+    )
     c = CollectorHelper()
 
     # last_retry = Last send try
@@ -122,8 +128,18 @@ async def metrics(request: aiohttp.web.Request) -> aiohttp.web.Response:  # noqa
         fediseer_domains = set()
 
     for i in j["federated_instances"][federation_type]:
+        remote_instance = i["domain"].strip().lower()
+
+        # If the domain filter is passed as query
+        # parameter and the domain is not included, skip the domain.
+        #
+        # This replaces the fediseer filter if it's set.
+        if remote_instances_filter is not None:
+            if remote_instance not in remote_instances_filter:
+                continue
+
         # If the domain is not in the list of verified domains, skip the domain
-        if FILTER_FEDISEER_ENABLED and i["domain"].lower() not in fediseer_domains:
+        elif FILTER_FEDISEER_ENABLED and remote_instance not in fediseer_domains:
             continue
 
         if "updated" not in i:
