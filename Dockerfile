@@ -29,8 +29,8 @@ RUN addgroup --gid "$UID" containeruser && \
   chown $UID:$UID /project
 
 ENV PYTHONPATH=/project/pkgs
-COPY --from=builder /project/__pypackages__/3.12/lib /project/pkgs
-COPY --from=builder /project/__pypackages__/3.12/bin/* /bin/
+COPY --from=builder /project/__pypackages__/3.13/lib /project/pkgs
+COPY --from=builder /project/__pypackages__/3.13/bin/* /bin/
 
 USER $UID:$UID
 WORKDIR /project
