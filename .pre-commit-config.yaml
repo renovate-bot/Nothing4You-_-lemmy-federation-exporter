@@ -9,11 +9,11 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
   - repo: https://github.com/pdm-project/pdm
-    rev: 2.21.0
+    rev: 2.22.3
     hooks:
       - id: pdm-lock-check
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.19.0
+    rev: v3.19.1
     hooks:
       - id: pyupgrade
         args:
@@ -29,7 +29,7 @@ repos:
         additional_dependencies:
           - prettier@3.2.5
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.1
+    rev: v0.9.3
     hooks:
       # Run the linter.
       - id: ruff
@@ -39,7 +39,7 @@ repos:
       # Run the formatter.
       - id: ruff-format
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: "v1.13.0" # Use the sha / tag you want to point at
+    rev: "v1.14.1" # Use the sha / tag you want to point at
     hooks:
       - id: mypy
         args: [--strict, --ignore-missing-imports]
