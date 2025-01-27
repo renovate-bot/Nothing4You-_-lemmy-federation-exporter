@@ -1,7 +1,9 @@
-FROM python:3.12-slim-bookworm@sha256:69ce3aed05675d284bee807e7c45e560e98db21fb1e4c670252b4ee0f2496b6d AS builder
+FROM python:3.13-slim-bookworm@sha256:026dd417a88d0be8ed5542a05cff5979d17625151be8a1e25a994f85c87962a5 AS builder
 
 RUN pip install -U pip setuptools wheel
 RUN pip install pdm
+# build dependencies for pycares, no 3.13 wheel
+RUN apt-get update && apt-get install -y gcc && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml pdm.lock README.md /project/
 
@@ -14,7 +16,7 @@ COPY src/ /project/src
 RUN pdm sync --prod --no-editable
 
 
-FROM python:3.12-slim-bookworm@sha256:69ce3aed05675d284bee807e7c45e560e98db21fb1e4c670252b4ee0f2496b6d
+FROM python:3.13-slim-bookworm@sha256:026dd417a88d0be8ed5542a05cff5979d17625151be8a1e25a994f85c87962a5
 
 ARG UID=34130
 
@@ -29,8 +31,8 @@ RUN addgroup --gid "$UID" containeruser && \
   chown $UID:$UID /project
 
 ENV PYTHONPATH=/project/pkgs
-COPY --from=builder /project/__pypackages__/3.12/lib /project/pkgs
-COPY --from=builder /project/__pypackages__/3.12/bin/* /bin/
+COPY --from=builder /project/__pypackages__/3.13/lib /project/pkgs
+COPY --from=builder /project/__pypackages__/3.13/bin/* /bin/
 
 USER $UID:$UID
 WORKDIR /project
