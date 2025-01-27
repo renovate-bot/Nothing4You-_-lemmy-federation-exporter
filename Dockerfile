@@ -2,6 +2,8 @@ FROM python:3.13-slim-bookworm@sha256:026dd417a88d0be8ed5542a05cff5979d17625151b
 
 RUN pip install -U pip setuptools wheel
 RUN pip install pdm
+# build dependencies for pycares, no 3.13 wheel
+RUN apt-get update && apt-get install -y gcc && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml pdm.lock README.md /project/
 
