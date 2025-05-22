@@ -26,13 +26,6 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-      - name: Extract image name
-        id: custom-meta
-        run: |
-          echo "image-name=${DOCKER_TAG%%:*}" | tee -a $GITHUB_OUTPUT
-        env:
-          DOCKER_TAG: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
-
       - name: Build containers
         uses: docker/build-push-action@1dc73863535b631f98b2378be8619f83b136f4a0 # v6.17.0
         with:
@@ -40,4 +33,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           annotations: ${{ steps.meta.outputs.annotations }}
-          cache-from: ${{ steps.custom-meta.outputs.image-name }}:buildcache
+          cache-from: type=gha
