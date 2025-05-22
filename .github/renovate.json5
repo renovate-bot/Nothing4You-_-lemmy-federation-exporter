@@ -7,9 +7,9 @@
   pinDigests: true,
   packageRules: [
     {
-      description: "Schedule digest updates weekly",
+      description: "Schedule digest updates monthly",
       matchUpdateTypes: ["digest"],
-      schedule: ["every 7 days"],
+      schedule: ["every 30 days"],
     },
   ],
 }
