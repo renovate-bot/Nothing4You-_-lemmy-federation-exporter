@@ -2,8 +2,8 @@ FROM python:3.14-slim-bookworm@sha256:404ca55875fc24a64f0a09e9ec7d405d725109aec0
 
 RUN pip install -U pip setuptools wheel
 RUN pip install pdm
-# build dependencies for pycares, no 3.14 wheel
-RUN apt-get update && apt-get install -y gcc && rm -rf /var/lib/apt/lists/*
+# build dependencies for pycares and cffi, no 3.14 wheels
+RUN apt-get update && apt-get install -y gcc libffi-dev && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml pdm.lock README.md /project/
 
