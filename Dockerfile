@@ -2,7 +2,7 @@ FROM python:3.14-slim-bookworm@sha256:404ca55875fc24a64f0a09e9ec7d405d725109aec0
 
 RUN pip install -U pip setuptools wheel
 RUN pip install pdm
-# build dependencies for pycares, no 3.13 wheel
+# build dependencies for pycares, no 3.14 wheel
 RUN apt-get update && apt-get install -y gcc && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml pdm.lock README.md /project/
@@ -31,8 +31,8 @@ RUN addgroup --gid "$UID" containeruser && \
   chown $UID:$UID /project
 
 ENV PYTHONPATH=/project/pkgs
-COPY --from=builder /project/__pypackages__/3.13/lib /project/pkgs
-COPY --from=builder /project/__pypackages__/3.13/bin/* /bin/
+COPY --from=builder /project/__pypackages__/3.14/lib /project/pkgs
+COPY --from=builder /project/__pypackages__/3.14/bin/* /bin/
 
 USER $UID:$UID
 WORKDIR /project
